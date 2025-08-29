@@ -56,4 +56,27 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    // Compose (필수)
+    implementation("androidx.compose.ui:ui:1.5.0")
+    implementation("androidx.compose.ui:ui-tooling-preview:1.5.0")
+    implementation("androidx.compose.material3:material3:1.1.1")
+    implementation("androidx.activity:activity-compose:1.7.2")
+
+    // Room (데이터베이스)
+    implementation("androidx.room:room-runtime:2.5.0")
+    implementation("androidx.room:room-ktx:2.5.0")
+    //kapt("androidx.room:room-compiler:2.5.0")
+
+    // Camera (카메라)
+    implementation("androidx.camera:camera-camera2:1.3.0")
+    implementation("androidx.camera:camera-lifecycle:1.3.0")
+    implementation("androidx.camera:camera-view:1.3.0")
+
+    // Image Loading (이미지)
+    implementation("io.coil-kt:coil-compose:2.4.0")
+
+    // Permissions (권한)
+    implementation("com.google.accompanist:accompanist-permissions:0.32.0")
+
 }
