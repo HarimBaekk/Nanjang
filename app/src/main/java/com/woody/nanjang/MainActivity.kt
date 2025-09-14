@@ -35,7 +35,7 @@ class MainActivity : ComponentActivity() {
 fun HomeScreen(){
     var selectedTab by remember { mutableStateOf(0) }
 
-    Column {
+    Column (modifier = Modifier.fillMaxSize()){
         // 간단한 탭 버튼들
         Row {
             TabButton("옷장", 0, selectedTab) { selectedTab = 0 }
