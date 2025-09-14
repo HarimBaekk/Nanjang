@@ -48,6 +48,7 @@ fun HomeScreen(){
             0 -> ClosetScreen()
             1 -> TryOnScreen()
             2 -> ChatScreen()
+            else -> {}
         }
     }
 
