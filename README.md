@@ -1,120 +1,96 @@
-# AI Fashion 3D Generator - MVP
+# AI Fashion 3D Fitting System
 
-> 텍스트 입력 5초 만에 3D 의상 모델 생성
+> AI로 의상을 생성하고 3D 마네킹에 실시간으로 입혀보는 WebGL 기반 시스템
 
-## 프로젝트 목적
+##  프로젝트 목표
 
-패션 디자이너가 **텍스트만으로 즉시 3D 의상을 생성**할 수 있는 초경량 웹 플랫폼
+패션 디자이너가 아이디어를 텍스트로 입력하면 즉시 3D로 시각화하여 디자인 검증 시간을 단축
 
-### 핵심 가치
-- **진입장벽 제거**: 쉬운 사용성
-- **즉각성**: 5초 만에 3D 모델
-- **비용 효율**: 월 $20 이하
+##  핵심 기능
 
----
+- **AI 생성 파이프라인**: 텍스트 → 2D 이미지 (Stable Diffusion) → 3D 모델 (TripoSR)
+- **3D 피팅 시스템**: 생성된 의상을 마네킹에 자동 착용
+- **실시간 3D 뷰어**: WebGL 2.0 기반 360도 회전, 재질 변경
+- **GLB 파일 파싱**: C++로 자체 구현 후 WebAssembly로 브라우저 실행
 
-## 해결하는 문제
+##  기술 스택
 
-| 문제 | 기존 솔루션 | 우리 |
-|------|------------|------|
-| 학습곡선 | 3-6개월 | **5분** |
-| 생성 속도 | 30분+ | **5초** |
-| 초기 비용 | $50~수백만원 | **무료** |
+### Graphics Engine
+- **WebGL 2.0** (Raw API, 라이브러리 미사용)
+- **GLSL** 커스텀 셰이더 (PBR 재질 표현)
+- **C++ GLB Parser** (TinyGLTF)
+- **WebAssembly** (네이티브 성능)
 
----
-
-## 타겟 유저 (MVP)
-
-1. **프리랜서 디자이너** - 클라이언트 프레젠테이션용
-2. **패션 학생** - 포트폴리오 제작
-3. **소규모 브랜드** - 샘플 전 아이디어 검증
-
----
-
-## MVP 스코프
-
-### 지원 카테고리
-- ✅ **재킷/코트**만 (MVP)
-- ❌ 셔츠, 팬츠 등은 Phase 2
-
-### 핵심 기능 (최소)
-1. 텍스트 입력 → 3D 생성
-2. 360도 회전 뷰어
-3. 색상 변경 (5가지)
-4. GLB 다운로드
-
----
-
-## 기술 스택 (단순화)
-
-### ⚡ AI 파이프라인
-
-```
-텍스트 입력
-   ↓
-Gemini 2.5 Flash Image (정면 이미지 1장)
-   ↓ 2초
-InstantMesh (Image → 3D)
-   ↓ 3초
-GLB 파일
-   ↓
-Three.js 뷰어
-```
+### AI Pipeline
+- Stable Diffusion XL (텍스트→이미지)
+- TripoSR (이미지→3D)
 
 ### Frontend
-- Next.js 14
-- Three.js (3D 뷰어)
-- Tailwind CSS
+- TypeScript (순수, 프레임워크 미사용)
+- Vite (빌드 도구)
 
-### Backend
-- FastAPI (Python)
-- Redis Queue (비동기 처리)
+##  성능 지표
 
-### AI Models
-```python
-# 1. 이미지 생성
-import google.generativeai as genai
-model = genai.GenerativeModel('gemini-2.5-flash-image-preview')
-image = model.generate_content([
-    "오버사이즈 데님 재킷, 정면, 흰배경, 제품사진"
-])
+- **생성 속도**: 텍스트 입력 후 15초 내 3D 모델 생성
+- **렌더링**: 100k 폴리곤 @ 60fps
+- **파싱 속도**: 10MB GLB 파일 0.3초 내 처리
+- **메모리**: 평균 200MB 사용
 
-# 2. 3D 변환
-from instant_mesh import InstantMesh
-mesh = InstantMesh.generate(image, quality='standard')
-mesh.export('output.glb')
+##  기술적 하이라이트
+
+### 1. 3D 파일 포맷 파싱
+- C++로 GLB 바이너리 구조 직접 파싱
+- Vertex, Normal, TexCoord, Index 데이터 추출
+- Emscripten으로 WASM 컴파일하여 브라우저에서 실행
+
+### 2. Cloth Fitting 알고리즘
+- Vertex Snapping: 의상 정점을 마네킹 표면에 자동 정렬
+- Collision Detection: 메쉬 간 충돌 방지
+- Normal 기반 오프셋으로 자연스러운 착용감 구현
+
+### 3. PBR 셰이더
+- Metallic/Roughness 워크플로우
+- 의상별 재질 프리셋 (Cotton, Silk, Leather, Denim)
+- HDR 환경맵 기반 라이팅
+
+### 4. GPU 최적화
+- Frustum Culling (뷰포트 밖 제거)
+- LOD (거리별 디테일 조절)
+- Instanced Rendering (다중 의상 동시 렌더링)
+
+##  프로젝트 구조
+```
+project/
+├── frontend/          # TypeScript + WebGL
+│   └── src/
+│       ├── webgl/    # 렌더러, 셰이더
+│       ├── ai/       # API 호출
+│       └── wasm/     # WASM 로더
+│
+└── parser/           # C++ GLB 파서
+    └── src/
+        └── glb_parser.cpp
 ```
 
-### Hosting
-- Frontend: Vercel
-- Backend: AWS Lambda
-- Storage: Cloudflare R2
+##  실행 방법
+```bash
+# 프론트엔드
+cd frontend
+npm install
+npm run dev
 
----
-
-## MVP 기능 명세
-
-### ✅ Must Have
-
-```markdown
-1. 홈페이지
-   - 프롬프트 입력창
-   - "생성하기" 버튼
-   - 로딩 애니메이션 (5초)
-
-2. 3D 뷰어
-   - 360도 회전
-   - 줌 인/아웃
-   - 배경색 변경 (흰색/회색)
-
-3. 색상 변경
-   - 5가지 프리셋 (블랙/화이트/네이비/베이지/그레이)
-   - 클릭 1번으로 즉시 적용
-
-4. 다운로드
-   - GLB 파일 (Blender 호환)
+# C++ 파서 빌드 (최초 1회)
+cd parser
+./build.sh
 ```
 
-**Last Updated**: 2025-10-07  
-**Version**: 0.1.0-mvp  
-**Status**: 🚧 Planning Complete → Development Starting
+## 데모
+
+
+##  개발 기간
+
+2주 (2025.10.21 - 2025.11.03)
+
+##  개발자
+
+harim
